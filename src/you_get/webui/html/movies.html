@@ -1,0 +1,197 @@
+<!DOCTYPE HTML> 
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>You-Get WebApp Movies</title>
+
+<style>
+
+/* fixed nav-bar */
+body {
+  min-height: 2000px;
+  padding-top: 70px;
+}
+
+.favicon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: .3em;
+  line-height: 14px;
+  vertical-align: text-top;
+  background-position: 14px 14px;
+  background-repeat: no-repeat;
+  margin-top: 1px;
+}
+
+.th-sortable {
+  cursor: pointer
+}
+</style>
+<script>
+
+</script>
+</head>
+<body>
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand"
+        href="http://www.soimort.org/you-get/">You-Get</a>
+    </div><!-- navbar-header -->
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+          <li><a href="index.html">Tasks</a></li>
+          <li class="active"><a href="movies.html">Movies</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <!--
+          <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
+        -->
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
+</nav>
+
+<div class="container">
+<div class="jumbotron">
+  <div class="table-responsive">
+    <table id="movie-table" class="table table-hover">
+      <thead>
+        <tr>
+          <th id="movie-title" class="th-sortable">Title</th>
+          <th id="movie-size" class="text-right th-sortable">Size</th>
+          <th id="movie-time" class="text-right th-sortable">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!--
+          <tr>
+          <td>Alfreds Futterkiste</td>
+          <td class="text-right">Maria Anders</td>
+          <td>Futterkiste</td>
+          </tr>
+        -->
+      </tbody>
+    </table>
+  </div><!-- table-responsive -->
+
+</div><!-- jumbotron -->
+</div><!-- container --> 
+
+<!-- Placed at the end of the document so the pages load faster -->
+<!--
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+-->
+
+  <link rel="stylesheet"  href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet"  href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+  <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="http://apps.bdimg.com/libs/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script>
+
+// format a string with {0}, {1} ...
+String.prototype.format_me = function() {
+    var newStr = this;
+
+    for (var i = 0; i < arguments.length; i++) {
+        newStr = newStr.split('{' + i + '}').join(arguments[i]);
+    }
+    return newStr;
+};
+// Convert integer to human readable number
+// http://stackoverflow.com/a/10469752
+function num2human(num, base) {
+  var base = typeof base !== 'undefined' ? base : 1000;
+  var s = ['B', 'kB', 'MB', 'GB', 'TB', 'PB'];
+  var e = Math.floor(Math.log(num) / Math.log(base));
+  return (num / Math.pow(base, e)).toFixed(2) + "" + s[e];
+}
+
+function set_movie_table(sortby) {
+    var $tbody = $("#movie-table > tbody");
+    var data = $tbody.data("movie-data");
+    if (!data) {
+        return;
+    }
+
+    if (typeof sortby === "undefined") {
+        sortby = $tbody.data("sort-by");
+    }
+    if (!sortby) { 
+        sortby = "title";
+    }
+
+    $tbody.data("sort-by", sortby);
+    const sort_key = {
+        title: 0,
+        size: 1,
+        time: 2
+    };
+
+    var sort_idx = sort_key[sortby];
+    var data_sorted = data.sort(function(a, b) {
+      var aval = a[sort_idx];
+      var bval = b[sort_idx];
+        if (typeof aval === "number") {
+            return aval - bval;
+        } else {
+            return ((aval < bval) ? -1 : ((aval > bval) ? 1 : 0));
+        }
+    });
+
+    var i;
+    var content = "";
+    for (i=0; i < data_sorted.length; i++) {
+        var item = data_sorted[i];
+        var title = item[0];
+        var size = num2human(item[1]);
+        var time = new Date(1000*item[2]);
+        var movie_url = "/movies/{0}".format_me(encodeURIComponent(title));
+        var movie_download_url = "/movies/download/{0}".format_me(
+            encodeURIComponent(title));
+        content += '\
+                   <tr data-id="{0}">\
+                   <td><a href="{4}"><span\
+                     class="glyphicon glyphicon-download"></span></a>\
+                   <a href="{3}">{0}</a></td>\
+                   <td class="text-right">{1}</td>\
+                   <td class="text-right">{2}</td>\
+                   </tr>\
+                   '.format_me(title, size, time.toLocaleString(),
+                       movie_url, movie_download_url);
+    }
+
+    $("#movie-table > tbody tr").remove();
+    $tbody.append(content);
+}
+
+function fill_movie_table() {
+    var url = "/api/ver1/movies";
+    $.get(url, function(data, text_status, jq_xhr){
+        var $tbody = $("#movie-table > tbody");
+        $tbody.data("movie-data", data.files);
+        set_movie_table();
+    }, "json");
+}
+
+function init_you_get(){
+    fill_movie_table();
+    $("#movie-title").on("click", function() {set_movie_table("title");});
+    $("#movie-size").on("click", function() {set_movie_table("size");});
+    $("#movie-time").on("click", function() {set_movie_table("time");});
+}
+$(document).ready(init_you_get);
+</script>
+</body>
+</html>
+
+<!--
+vim:fileencoding=utf-8:shiftwidth=2:et
+-->
