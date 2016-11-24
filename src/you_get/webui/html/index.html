@@ -1,0 +1,271 @@
+<!DOCTYPE HTML> 
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>You-Get WebApp Tasks</title>
+
+<style>
+
+/* fixed nav-bar */
+body {
+  min-height: 2000px;
+  padding-top: 70px;
+}
+/* hide ID column of task-table */
+#task-table tr th:nth-child(2),
+#task-table tr td:nth-child(2)
+{
+    display: none;
+}
+
+.favicon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: .3em;
+  line-height: 14px;
+  vertical-align: text-top;
+  background-position: 14px 14px;
+  background-repeat: no-repeat;
+  margin-top: 1px;
+}
+
+</style>
+<script>
+//const TASKS_UPDATE_TIMEOUT = 1000*60*5; // 5 minutes
+const TASKS_UPDATE_TIMEOUT = 3000;
+const ERROR_RETRY_TIMEOUT = 1000*30; // retry on sse error
+
+</script>
+</head>
+<body>
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand"
+        href="http://www.soimort.org/you-get/">You-Get</a>
+    </div><!-- navbar-header -->
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown active">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Tasks<span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#new-download-dialog"
+                   id="new-download-menu"
+                   data-toggle="modal">New...</a></li>
+            <li class="divider"></li>
+            <li><a id="task-start-selected" href="#">Start Selected</a></li>
+            <li class="divider"></li>
+            <li><a id="task-remove-selected" href="#">Remove Selected</a></li>
+            <li><a id="task-remove-successed" href="#">Remove Successed</a></li>
+            <li><a id="task-remove-failed" href="#">Remove Failed</a></li>
+            <li class="divider"></li>
+            <li><a id="task-remove-all" href="#">Remove All</a></li>
+          </ul>
+        </li>
+        <li><a href="movies.html">Movies</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <!--
+          <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
+        -->
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
+</nav>
+
+<div class="container">
+<div class="jumbotron">
+  <div class="table-responsive">
+    <table id="task-table" class="table table-hover">
+      <thead>
+        <tr>
+          <th>
+            <input type="checkbox" id="check-all-task" name="check-all-task">
+          </th>
+          <th>TaskId</th>
+          <th>Title</th>
+          <th class="text-right">Size</th>
+          <th class="text-right">Progress</th>
+          <th class="text-right">Speed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!--
+          <tr>
+          <td>
+          <input type="checkbox" name="check-task" id="check-task-01">
+          </td>
+          <td>1</td>
+          <td>Alfreds Futterkiste</td>
+          <td class="text-right">Maria Anders</td>
+          <td class="text-right">Obere Str. 57</td>
+          <td class="text-right">Berlin</td>
+          </tr>
+        -->
+      </tbody>
+    </table>
+  </div><!-- table-responsive -->
+
+  <button type="button"
+    class="btn btn-primary btn-lg"
+    data-toggle="modal" data-target="#new-download-dialog">
+    New Download
+</button>
+
+</div>
+</div><!-- container --> 
+
+<div id="new-download-dialog"
+     class="modal fade"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="new-download-title"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="new-download-title">Create New Download</h4>
+      </div>
+
+      <div class="modal-body">
+        <form method="post" action="#" id="new-task-form">
+          <div class="form-group">
+          <label for="new-urls">Video URL:</label>
+          <textarea cols="60" row="4" id="new-urls" name="urls" class="form-control"></textarea>
+          </div>
+
+          <div class="form-group">
+          <label for="extractor-proxy">XProxy:</label>
+          <input id="extractor-proxy" type="text" name="extractor_proxy" class="form-control">
+          </div>
+
+          <div class="checkbox">
+            <label for="do-playlist">
+            <input id="do-playlist" type="checkbox" name="do_playlist">Playlist
+            </label>
+          </div>
+          <div class="form-group">
+            <input type="submit" data-inline="true" value="Submit">
+          </div>
+        </form> 
+      </div>
+    </div><!-- modal-content -->
+  </div><!-- modal-dialog -->
+</div><!-- modal -->
+   <!-- Placed at the end of the document so the pages load faster -->
+<!--
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+  <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+-->
+  <link rel="stylesheet"  href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet"  href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+  <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="http://apps.bdimg.com/libs/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+
+  <script src="task_restful.js"></script>
+<script>
+function reset_new_urls() {
+  $("#new-urls").val("");
+}
+
+var task_manager = new TaskManager();
+function init_you_get(){
+  var task_updater = new TaskUpdater(task_manager);
+  //task_updater.update_query_tasks();
+  task_updater.update_server_sent_event();
+
+  $(".dropdown-menu li a").click(function(){
+    var aid = $(this).attr("id");
+    if (typeof aid === "undefined") {
+      return;
+    }
+    if (aid.substr(0, 5) == "task-") {
+      task_manager.do_cmd(aid);
+    }
+  });
+
+  $("#task-table").popover({
+    selector: ".has-popover",
+  });
+  $("table#task-table").on("show.bs.popover", ".task-popover", function(){
+    task_manager.set_popover_content($(this));
+  });
+
+  // hide popup when click outside
+  $('html').on('click', function(e) {
+    if (typeof $(e.target).data('original-title') == 'undefined' &&
+      !$(e.target).parents().is('.popover.in')) {
+      $('#task-table .task-popover[data-original-title]').popover('hide');
+    }
+  });
+
+  $("form#new-task-form").submit(function (evt){
+    var url = "/api/ver1/tasks";
+
+    // jsonize form data
+    var urls = $("#new-urls").val();
+    if (!urls || /^\s*$/.test(urls)) {
+      evt.preventDefault();
+      return false;
+    }
+
+    var data = {};
+    $("form#new-task-form").serializeArray().map(function(x){
+      data[x.name] = x.value;
+    }); 
+
+    ajax_json(url, data, "POST", function(task_data, text_status, jq_xhr){
+      //append_task(task_data);
+      if (typeof task_data.error === "undefined") {
+        task_manager.add(task_data);
+        reset_new_urls();
+      } else {
+        alert(task_data.error);
+      }
+      $("#new-download-dialog").modal("hide");
+    });
+    evt.preventDefault();
+    return false;
+  });
+
+  $("#check-all-task").on("click", function(evt) {
+    if ($(this).prop("checked") === true) {
+      $('input[name="check-task"]').prop("checked", true);
+    } else {
+      $('input[name="check-task"]').prop("checked", false);
+    }
+  });
+
+  // handle checkall checkbox
+  $('#task-table > tbody').on("change",
+    'input[name="check-task"]', function(evt) {
+      if ($(this).prop("checked") === false
+        && $("#check-all-task").prop("checked") === true) {
+          $("#check-all-task").prop("checked", false);
+      }
+  });
+}
+
+$(document).ready(init_you_get);
+
+</script>
+<style>
+/* Override bootstrap CSS */
+#task-table .popover{
+    max-width: 90%;
+}
+</style>
+</body>
+</html>
+
+<!--
+vim:fileencoding=utf-8:sw=2:et
+-->
