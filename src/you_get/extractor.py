@@ -204,8 +204,8 @@ class VideoExtractor():
             # For legacy main()
             download_urls(urls, self.title, ext, total_size,
                           output_dir=kwargs['output_dir'],
-                          merge=kwargs['merge'],
-                          av=stream_id in self.dash_streams)
+                          merge=kwargs['merge'],)
+                          #av=stream_id in self.dash_streams)
             if not kwargs['caption']:
                 print('Skipping captions.')
                 return
